@@ -27,9 +27,6 @@ An open-source React.js package for easy integration of a file manager into appl
   intuitive keyboard shortcuts.
 - **Drag-and-Drop**: Move selected files and folders by dragging them to the desired directory,
   making file organization effortless.
-- **Column Sorting**: Click on column headers in list view to sort files by name, modified date, or
-  size. Click again to toggle between ascending (▲) and descending (▼) order. Folders are always
-  displayed before files regardless of the sort criteria.
 
 ![React File Manager](https://github.com/user-attachments/assets/e68f750b-86bf-450d-b27e-fd3dedebf1bd)
 
@@ -113,6 +110,7 @@ type File = {
 | `fileUploadConfig`       | { url: string; method?: "POST" \| "PUT"; headers?: { [key: string]: string } }                                                  | Configuration object for file uploads. It includes the upload URL (`url`), an optional HTTP method (`method`, default is `"POST"`), and an optional `headers` object for setting custom HTTP headers in the upload request. The `method` property allows only `"POST"` or `"PUT"` values. The `headers` object can accept any standard or custom headers required by the server. Example: `{ url: "https://example.com/fileupload", method: "PUT", headers: { Authorization: "Bearer " + TOKEN, "X-Custom-Header": "value" } }` |
 | `files`                  | Array<[File](#-file-structure)>                                                                                                 | An array of file and folder objects representing the current directory structure. Each object includes `name`, `isDirectory`, and `path` properties.                                                                                                                                                                                                                                                                                                                                                                            |
 | `fontFamily`             | string                                                                                                                          | The font family to be used throughout the component. Accepts any valid CSS font family (e.g., `'Arial, sans-serif'`, `'Roboto'`). You can customize the font styling to match your application's theme. `default: 'Nunito Sans, sans-serif'`.                                                                                                                                                                                                                                                                                   |
+| `formatDate`             | (date: string \| Date) => string | (Optional) A custom function used to format file and folder modification dates. If omitted, the component falls back to its built-in formatter from `utils/formatDate`. Useful for adapting the date display to different locales or formats.
 | `height`                 | string \| number                                                                                                                | The height of the component `default: 600px`. Can be a string (e.g., `'100%'`, `'10rem'`) or a number (in pixels).                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `initialPath`            | string                                                                                                                          | The path of the directory to be loaded initially e.g. `/Documents`. This should be the path of a folder which is included in `files` array. Default value is `""`                                                                                                                                                                                                                                                                                                                                                               |
 | `isLoading`              | boolean                                                                                                                         | A boolean state indicating whether the application is currently performing an operation, such as creating, renaming, or deleting a file/folder. Displays a loading state if set `true`.                                                                                                                                                                                                                                                                                                                                         |
@@ -135,7 +133,6 @@ type File = {
 | `onRename`               | (file: [File](#-file-structure), newName: string) => void                                                                       | A callback function triggered when a file or folder is renamed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `onSelectionChange`      | (files: Array<[File](#-file-structure)>) => void                                                                                | (Optional) A callback triggered whenever a file or folder is **selected or deselected**. The function receives the updated array of selected files or folders, allowing you to handle selection-related actions such as displaying file details, enabling toolbar actions, or updating the UI.                                                                                                                                                                                                                                  |
 | `onSelect`⚠️(deprecated) | (files: Array<[File](#-file-structure)>) => void                                                                                | (Optional) Legacy callback triggered only when a file or folder is **selected**. This prop is deprecated and will be removed in the next major release. Please migrate to `onSelectionChange`.                                                                                                                                                                                                                                                                                                                                  |
-| `onSortChange`           | (sortConfig: { key: "name" \| "modified" \| "size", direction: "asc" \| "desc" }) => void                                       | (Optional) A callback function triggered when the sorting order changes. Receives the new sort configuration with the column key and direction. Useful for persisting sort preferences or updating external state.                                                                                                                                                                                                                                                                                                              |
 | `permissions`            | { create?: boolean; upload?: boolean; move?: boolean; copy?: boolean; rename?: boolean; download?: boolean; delete?: boolean; } | An object that controls the availability of specific file management actions. Setting an action to `false` hides it from the toolbar, context menu, and any relevant UI. All actions default to `true` if not specified. This is useful for implementing role-based access control or restricting certain operations. Example: `{ create: false, delete: false }` disables folder creation and file deletion.                                                                                                                   |
 | `primaryColor`           | string                                                                                                                          | The primary color for the component's theme. Accepts any valid CSS color format (e.g., `'blue'`, `'#E97451'`, `'rgb(52, 152, 219)'`). This color will be applied to buttons, highlights, and other key elements. `default: #6155b4`.                                                                                                                                                                                                                                                                                            |
 | `style`                  | object                                                                                                                          | Inline styles applied to the FileManager root element.                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -238,55 +235,6 @@ function App() {
 - After that, folder changes are driven by `onFolderChange`.
 - If you want to keep the path in sync with user navigation, use a controlled state (as shown
   above).
-
-## 🤝 Contributing
-
-Contributions are welcome! To contribute:
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/branch-name`).
-3. Make your changes.
-4. Commit your changes (`git commit -m 'Add some feature'`).
-5. Push to the branch (`git push origin feature/branch-name`).
-6. Open a Pull Request.
-
-Get started by running following commands:
-
-```bash
-git clone https://github.com/Saifullah-dev/react-file-manager.git
-cd react-file-manager
-```
-
-**Frontend**
-
-```bash
-cd frontend
-npm i
-npm run dev
-```
-
-The application should now be running on `http://localhost:5173`.
-
-**Backend**
-
-```bash
-cd backend
-npm i
-npm run devStart
-```
-
-The server should now be running on `http://localhost:3000`, have fun!
-
-**Database** <br> The application uses MongoDB to store file system changes (folders and images).
-
-1. Install MongoDB if not already installed.
-2. Ensure MongoDB service is running (default port: 27017).
-3. Create a database named `fileManagerDB` (or as specified in `backend/.env`).
-
-Check `backend/.env.example` for database configuration details.
-
-> Note: `backend` here is just an example implementation of react-file-manager into your
-> application. You may use any database and server combination of your choice.
 
 ## ©️ License
 
